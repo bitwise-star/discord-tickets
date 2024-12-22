@@ -7,38 +7,44 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model GuildConfig {
-  id String @unique
-  panels TicketPanel[]
+model guildconfig {
+  id               String        @unique(map: "GuildConfig_id_key")
   basicTicketCount Int
+  ticketpanel      ticketpanel[]
 }
 
-model TicketPanel {
-  id Int @id @default(autoincrement())
-  name String
-  guild GuildConfig @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  guildId String
-  categories TicketCategory[]
+model ticket {
+  id             Int             @id @default(autoincrement())
+  ticketNumber   Int
+  ownerId        String
+  categoryId     Int?
+  status         ticket_status   @default(OPEN)
+  ticketcategory ticketcategory? @relation(fields: [categoryId], references: [id], onDelete: Cascade, map: "Ticket_categoryId_fkey")
+
+  @@index([categoryId], map: "Ticket_categoryId_fkey")
 }
 
-model TicketCategory {
-  id Int @id @default(autoincrement())
-  ticketCount Int @default(0)
-  panel TicketPanel @relation(fields: [panelId], references: [id], onDelete: Cascade)
-  panelId Int
-  tickets Ticket[]
+model ticketcategory {
+  id          Int         @id @default(autoincrement())
+  ticketCount Int         @default(0)
+  panelId     Int
+  ticket      ticket[]
+  ticketpanel ticketpanel @relation(fields: [panelId], references: [id], onDelete: Cascade, map: "TicketCategory_panelId_fkey")
+
+  @@index([panelId], map: "TicketCategory_panelId_fkey")
 }
 
-model Ticket {
-  id Int @id @default(autoincrement())
-  ticketNumber Int
-  ownerId String
-  category TicketCategory? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  categoryId Int?
-  status TicketStatus @default(OPEN)
+model ticketpanel {
+  id             Int              @id @default(autoincrement())
+  name           String
+  guildId        String
+  ticketcategory ticketcategory[]
+  guildconfig    guildconfig      @relation(fields: [guildId], references: [id], onDelete: Cascade, map: "TicketPanel_guildId_fkey")
+
+  @@index([guildId], map: "TicketPanel_guildId_fkey")
 }
 
-enum TicketStatus {
+enum ticket_status {
   OPEN
   CLOSED
 }
