@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model GuildConfig {
+  id String @unique
+  panels TicketPanel[]
+  basicTicketCount Int
+}
+
+model TicketPanel {
+  id Int @id @default(autoincrement())
+  name String
+  guild GuildConfig @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  guildId String
+  categories TicketCategory[]
+}
+
+model TicketCategory {
+  id Int @id @default(autoincrement())
+  ticketCount Int @default(0)
+  panel TicketPanel @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  panelId Int
+  tickets Ticket[]
+}
+
+model Ticket {
+  id Int @id @default(autoincrement())
+  ticketNumber Int
+  ownerId String
+  category TicketCategory? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId Int?
+  status TicketStatus @default(OPEN)
+}
+
+enum TicketStatus {
+  OPEN
+  CLOSED
+}
